@@ -85,3 +85,78 @@ jQuery(document).ready(function($) {
 
 
 </script>
+
+
+
+
+
+/**
+* Address Validation on checkout page 
+* Ajax response using USPS API
+**/
+
+// Register the AJAX action
+add_action('wp_ajax_my_ajax_action', 'my_ajax_action_callback');
+add_action('wp_ajax_nopriv_my_ajax_action', 'my_ajax_action_callback'); // For non-logged-in users
+
+// AJAX callback function
+function my_ajax_action_callback() {
+  // Get the field value from the AJAX request
+  //$field_value = sanitize_text_field($_POST['field_value']);
+
+
+    $finalsendrequest = $_POST['finalsendrequest'];
+
+    $user_inputs = 	explode('=', $finalsendrequest);
+
+
+    $u_address = $user_inputs[0];
+    $u_city = $user_inputs[1];
+    $u_zip = $user_inputs[2];
+    $billing_state = $user_inputs[3];
+
+
+    $requested_address= '<?xml version="1.0" ?>
+						<AddressValidateRequest USERID="xxxxxxxx">
+						<Revision>1</Revision>
+						<Address ID="0">
+							<Address1>'.$u_address.'</Address1>
+							<Address2>'.$u_city.'</Address2>
+							<City/>
+							<State>'.$billing_state.'</State>
+							<Zip5>'.$u_zip.'</Zip5>
+							<Zip4/>
+						</Address>
+						</AddressValidateRequest>';
+
+$doc_string = preg_replace('/[\t\n]/', '', $requested_address);
+$doc_string = urlencode($requested_address);
+
+$url = "http://production.shippingapis.com/ShippingAPI.dll?API=Verify&XML=".$doc_string;
+
+$response = file_get_contents($url);
+
+$xml = simplexml_load_string($response) or die("Error:Cannot create object");
+
+$errorDescription = $xml->Address->Error->Description;
+
+if(!empty($errorDescription))
+{
+	$msg= 'Address is not Validated';
+}
+else
+{
+
+	$msg= 'Address is Validated';
+
+}
+
+  // Send a response back to the JavaScript
+  wp_send_json_success($msg);  //or wp_send_json_error('Error!');
+
+	exit;
+}
+
+
+
+
