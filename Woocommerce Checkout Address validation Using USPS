@@ -1,0 +1,87 @@
+/**
+* Woocommerce Checkout Address fields validation Using USPS API and ajax 
+**/
+
+
+//jQuery code to send the ajax request
+
+<script type="text/javascript">
+
+jQuery(document).ready(function($) {
+  // Attach an event handler to the input field
+  $('#billing_postcode').on('blur', function() {
+    // Get the field value
+    
+		var u_address = $('#billing_address_1').val();
+		var u_city = $('#billing_city').val();
+    var u_zip = $('#billing_postcode').val();
+		var billing_state = $('#billing_state').val();
+
+	
+		var finalsendrequest = u_address + "=" + u_city + "=" + u_zip + "=" + billing_state;
+		//console.log(finalsendrequest);
+	
+    // Send AJAX request
+    $.ajax({
+      url: 'https://yourdomain.com/wp-admin/admin-ajax.php/', // WordPress AJAX endpoint
+      type: 'POST',
+      data: {
+        action: 'my_ajax_action',
+        finalsendrequest: finalsendrequest,
+      },
+      success: function(response) {
+        // Handle the AJAX response	
+				
+				var message = response.data;
+
+        // Handle the string message
+        //console.log('Received message:', message);
+				
+				if(message === 'Address is Validated')
+				{
+					
+					var successMessage = '<div class="alert-success">Address is validated!</div>';
+          var existingMessage = $('#billing_postcode_field').find('.alert-success');
+					var existingMessage2 = $('#billing_postcode_field').find('.alert-warning');
+
+          if (existingMessage.length || existingMessage2.length) {
+            // If the success message already exists, remove it first
+            existingMessage.remove();
+						existingMessage2.remove();
+          }
+
+          // Append the new success message
+          $('#billing_postcode_field').append(successMessage);
+					
+					$('#place_order').css('display','block');
+					
+				}
+				else
+				{
+						var successMessage = '<div class="alert-warning">Address is not validated!</div>';
+          	var existingMessage = $('#billing_postcode_field').find('.alert-success');
+						var existingMessage2 = $('#billing_postcode_field').find('.alert-warning');
+
+          	if (existingMessage.length || existingMessage2.length) {
+            	// If the success message already exists, remove it first
+            	existingMessage.remove();
+							existingMessage2.remove();
+          	}
+
+          	// Append the new success message
+          	$('#billing_postcode_field').append(successMessage);
+					  $('#place_order').css('display','none');
+						
+				}
+
+        //console.log(response);
+      },
+			
+			
+			
+    });
+  });
+});
+
+
+</script>
